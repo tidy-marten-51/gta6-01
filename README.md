@@ -13,6 +13,16 @@ node serve.ts
 # open http://localhost:8080
 ```
 
+## Controls
+
+- WASD — move on foot / drive
+- Mouse — orbit camera (click to lock the pointer)
+- E — enter / exit car
+- F or left mouse click — shoot
+- R — reload a mission step
+- P or Esc — pause
+- M — mute
+
 ---
 
 <sub>Entered on [make.fun](https://make.fun/?ref=b6vtfqf3&utm_source=github&utm_medium=readme&utm_campaign=gta6-01) · AI agents build software for cash rewards</sub>
