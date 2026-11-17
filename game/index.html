@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOLMAR BAY — an original open-world crime game</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1020;
+    font-family: "Segoe UI", Verdana, sans-serif; color: #fff; }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #hud { position: fixed; inset: 0; pointer-events: none; display: none; }
+  #hud.on { display: block; }
+  #minimap { position: absolute; left: 14px; bottom: 14px; width: 210px; height: 210px;
+    border: 2px solid rgba(255,255,255,.55); border-radius: 50%; background: rgba(8,14,28,.72); }
+  #wanted { position: absolute; top: 12px; right: 16px; font-size: 30px; letter-spacing: 2px;
+    color: #ffd23e; text-shadow: 0 0 8px #000, 0 2px 2px #000; }
+  #wanted .dim { color: rgba(255,255,255,.22); }
+  #stats { position: absolute; right: 16px; top: 58px; text-align: right; font-size: 17px;
+    text-shadow: 0 1px 3px #000, 0 0 6px #000; line-height: 1.5; }
+  #money { color: #7dff9a; font-weight: 700; font-size: 21px; }
+  #objective { position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    background: rgba(8,14,28,.78); border: 1px solid #ffd23e; border-radius: 6px;
+    padding: 8px 16px; font-size: 16px; max-width: 560px; text-align: center; }
+  #objective b { color: #ffd23e; }
+  #healthbar { position: absolute; right: 16px; bottom: 16px; width: 220px; }
+  #healthbar .label { font-size: 13px; text-shadow: 0 1px 2px #000; margin-bottom: 3px; }
+  #healthtrack { height: 14px; background: rgba(0,0,0,.6); border: 1px solid #fff; border-radius: 7px; overflow: hidden; }
+  #healthfill { height: 100%; width: 100%; background: linear-gradient(90deg,#ff5a4e,#ffb84e); }
+  #speed { position: absolute; right: 16px; bottom: 62px; font-size: 30px; font-weight: 700;
+    text-shadow: 0 2px 4px #000; }
+  #speed small { font-size: 13px; font-weight: 400; }
+  #clock { position: absolute; left: 236px; bottom: 18px; font-size: 18px; text-shadow: 0 1px 3px #000; }
+  #hint { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%);
+    background: rgba(0,0,0,.65); padding: 6px 14px; border-radius: 5px; font-size: 15px; }
+  #crosshair { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px;
+    transform: translate(-50%,-50%); display: none; }
+  #crosshair::before, #crosshair::after { content: ""; position: absolute; background: #fff;
+    box-shadow: 0 0 3px #000; }
+  #crosshair::before { left: 10px; top: 0; width: 2px; height: 22px; }
+  #crosshair::after { left: 0; top: 10px; width: 22px; height: 2px; }
+  #toast { position: absolute; left: 50%; top: 34%; transform: translateX(-50%);
+    font-size: 26px; font-weight: 700; color: #ffd23e; text-shadow: 0 2px 6px #000;
+    text-align: center; opacity: 0; transition: opacity .3s; }
+  #screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; background: linear-gradient(160deg,#0b2a4a 0%,#123a5e 45%,#b3541e 100%);
+    z-index: 5; }
+  #screen h1 { font-size: 64px; margin: 0; letter-spacing: 6px; color: #ffd23e;
+    text-shadow: 0 4px 0 #7a2d0c, 0 8px 24px rgba(0,0,0,.6); }
+  #screen h2 { font-size: 19px; font-weight: 400; margin: 10px 0 26px; color: #ffe9c4; }
+  #screen .panel { background: rgba(0,0,0,.45); border: 1px solid rgba(255,210,62,.5); border-radius: 10px;
+    padding: 18px 26px; max-width: 620px; font-size: 15px; line-height: 1.65; text-align: left; }
+  #screen .panel b { color: #ffd23e; }
+  #screen button { margin-top: 24px; pointer-events: auto; cursor: pointer; font-size: 20px;
+    padding: 13px 44px; border-radius: 8px; border: none; background: #ffd23e; color: #231303; font-weight: 700; }
+  #screen button:hover { background: #ffe27a; }
+  #screen .keys { margin-top: 16px; font-size: 13px; color: #cfe3ff; }
+  #screen.hidden { display: none; }
+  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+</head>
+<body>
+<canvas id="game" aria-label="SOLMAR BAY: drive, steal cars, run missions and outrun the police in an original open-world city"></canvas>
+<div id="hud">
+  <canvas id="minimap" width="210" height="210"></canvas>
+  <div id="wanted"></div>
+  <div id="stats"><span id="money">$0</span><br><span id="rep"></span></div>
+  <div id="objective"></div>
+  <div id="healthbar"><div class="label">HEALTH</div><div id="healthtrack"><div id="healthfill"></div></div></div>
+  <div id="speed"></div>
+  <div id="clock"></div>
+  <div id="hint"></div>
+  <div id="crosshair"></div>
+  <div id="toast"></div>
+</div>
+<div id="screen"></div>
+<p id="status" role="status" aria-live="polite"></p>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
